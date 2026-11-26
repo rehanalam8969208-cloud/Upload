@@ -18,6 +18,7 @@
       --btn-border: rgba(255, 255, 255, 0.24);
       --btn-active-bg: #ffffff;
       --btn-active-text: #06070a;
+      --accent: #38bdf8;
     }
 
     * {
@@ -81,7 +82,7 @@
       font-size: 14px;
       font-weight: 600;
       cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
     }
 
     .upload-box {
@@ -94,18 +95,63 @@
       margin-bottom: 10px;
     }
 
-    .btn:active, .upload-box:active {
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn:active:not(:disabled), .upload-box:active {
       background: var(--btn-active-bg);
       color: var(--btn-active-text);
       transform: scale(0.97);
     }
 
-    .status {
+    .status-box {
       margin-top: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      transition: all 0.25s ease;
+    }
+
+    .status-box.uploading {
+      background: rgba(56, 189, 248, 0.14);
+      border-color: var(--accent);
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.25);
+    }
+
+    .status {
       font-size: 12.5px;
-      color: var(--text-secondary);
+      color: var(--text-primary);
       text-align: center;
-      min-height: 18px;
+      line-height: 1.45;
+    }
+
+    .timer-line {
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #7dd3fc;
+      text-align: center;
+      display: none;
+    }
+
+    .progress-track {
+      margin-top: 8px;
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+      display: none;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 0.25s ease;
     }
 
     .modal-backdrop {
@@ -157,30 +203,37 @@
 
   <div class="glass-card">
     <h1 class="title">Google Drive Upload</h1>
-    <p class="sub">Direct Photo ya koi bhi File chunein — upload se pehle password poochha jayega.</p>
+    <p class="sub">एक साथ कई फ़ोटो या फ़ाइलें चुनें — अपलोड से पहले पासवर्ड पूछा जाएगा।</p>
 
     <label for="drivePhotoInput" class="btn">
-      <span id="photoLabelText">Direct Photos</span>
+      <span id="photoLabelText">Direct Photos (Multiple)</span>
     </label>
-    <input type="file" id="drivePhotoInput" accept="image/*">
+    <input type="file" id="drivePhotoInput" accept="image/*" multiple>
 
     <label for="driveFileInput" class="upload-box">
-      <span id="fileLabelText">Choose File (Any File)</span>
+      <span id="fileLabelText">Choose Files (Multiple Any File)</span>
     </label>
-    <input type="file" id="driveFileInput">
+    <input type="file" id="driveFileInput" multiple>
 
-    <button type="button" class="btn" onclick="openPasswordModal()">Upload to Drive</button>
-    <div class="status" id="statusText">Ready</div>
+    <button type="button" class="btn" id="uploadTriggerBtn" onclick="openPasswordModal()">Upload to Drive</button>
+
+    <div class="status-box" id="statusBox">
+      <div class="status" id="statusText">Ready</div>
+      <div class="timer-line" id="timerLine"></div>
+      <div class="progress-track" id="progressTrack">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
   </div>
 
   <div class="modal-backdrop" id="passModal">
     <div class="modal-box">
       <div style="font-size:15px; font-weight:700;">Password Required</div>
-      <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Upload shuru karne ke liye password dalein</div>
+      <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">अपलोड शुरू करने के लिए पासवर्ड डालें</div>
       <input type="password" class="pass-input" id="passInput" placeholder="Enter password..." onkeydown="if(event.key==='Enter') confirmUploadWithPassword()">
       <div class="row-2">
-        <button type="button" class="btn" onclick="closePasswordModal()">Cancel</button>
-        <button type="button" class="btn" onclick="confirmUploadWithPassword()">Verify & Upload</button>
+        <button type="button" class="btn" style="margin-bottom:0;" onclick="closePasswordModal()">Cancel</button>
+        <button type="button" class="btn" style="margin-bottom:0;" onclick="confirmUploadWithPassword()">Verify & Upload</button>
       </div>
     </div>
   </div>
@@ -189,40 +242,73 @@
     const DRIVE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzZR-2GrvNEKvJHVCC-wsYGRAwKNLeTx_JOGtfgn4FmHGZ0YfZL77lYZthVbCW9sPCT/exec";
     const REQUIRED_PASS = "zeeshan";
 
-    let chosenFile = null;
+    let selectedFiles = [];
+    let isUploading = false;
+    let elapsedTimer = null;
+
     const photoInput = document.getElementById("drivePhotoInput");
     const fileInput = document.getElementById("driveFileInput");
     const photoLabelText = document.getElementById("photoLabelText");
     const fileLabelText = document.getElementById("fileLabelText");
+    const statusBox = document.getElementById("statusBox");
     const statusText = document.getElementById("statusText");
+    const timerLine = document.getElementById("timerLine");
+    const progressTrack = document.getElementById("progressTrack");
+    const progressFill = document.getElementById("progressFill");
+    const uploadTriggerBtn = document.getElementById("uploadTriggerBtn");
     const passModal = document.getElementById("passModal");
     const passInput = document.getElementById("passInput");
 
-    function handleFilePicked(f, sourceType) {
-      if (!f) return;
-      chosenFile = f;
-      const info = `${f.name} (${Math.max(1, Math.round(f.size / 1024))} KB)`;
-      if (sourceType === "photo") {
-        photoLabelText.textContent = info;
-        fileLabelText.textContent = "Choose File (Any File)";
-      } else {
-        fileLabelText.textContent = info;
-        photoLabelText.textContent = "Direct Photos";
+    function formatTotalSize(files) {
+      const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+      if (totalBytes >= 1024 * 1024) {
+        return `${(totalBytes / (1024 * 1024)).toFixed(1)} MB`;
       }
-      statusText.textContent = "Selected. Click Upload to Drive.";
+      return `${Math.max(1, Math.round(totalBytes / 1024))} KB`;
+    }
+
+    function estimateSeconds(files) {
+      const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
+      const sizeBasedSec = Math.ceil(totalBytes / (300 * 1024));
+      return Math.max(2, files.length + sizeBasedSec);
+    }
+
+    function handleFilesPicked(fileList, sourceType) {
+      if (isUploading) return;
+      const arr = Array.from(fileList || []);
+      if (!arr.length) return;
+      selectedFiles = arr;
+
+      const summary = `${arr.length} ${sourceType === "photo" ? "photo(s)" : "file(s)"} • ${formatTotalSize(arr)}`;
+      if (sourceType === "photo") {
+        photoLabelText.textContent = summary;
+        fileLabelText.textContent = "Choose Files (Multiple Any File)";
+      } else {
+        fileLabelText.textContent = summary;
+        photoLabelText.textContent = "Direct Photos (Multiple)";
+      }
+
+      statusBox.classList.remove("uploading");
+      timerLine.style.display = "none";
+      progressTrack.style.display = "none";
+      progressFill.style.width = "0%";
+      statusText.textContent = `${summary} ready. Estimated time: ~${estimateSeconds(arr)}s`;
     }
 
     photoInput.addEventListener("change", (e) => {
-      handleFilePicked(e.target.files && e.target.files[0], "photo");
+      handleFilesPicked(e.target.files, "photo");
+      e.target.value = "";
     });
 
     fileInput.addEventListener("change", (e) => {
-      handleFilePicked(e.target.files && e.target.files[0], "file");
+      handleFilesPicked(e.target.files, "file");
+      e.target.value = "";
     });
 
     function openPasswordModal() {
-      if (!chosenFile) {
-        statusText.textContent = "Pehle Direct Photos ya Choose File se koi file chunein.";
+      if (isUploading) return;
+      if (!selectedFiles.length) {
+        statusText.textContent = "पहले Direct Photos या Choose Files से फ़ाइलें चुनें।";
         return;
       }
       passInput.value = "";
@@ -237,38 +323,81 @@
     function confirmUploadWithPassword() {
       const entered = passInput.value.trim().toLowerCase();
       if (entered !== REQUIRED_PASS) {
-        statusText.textContent = "Galat password! Upload rok diya gaya.";
+        statusBox.classList.remove("uploading");
+        statusText.textContent = "गलत पासवर्ड! अपलोड रोक दिया गया।";
         closePasswordModal();
         return;
       }
       closePasswordModal();
-      uploadSelectedFile();
+      uploadSelectedFiles();
     }
 
-    function uploadSelectedFile() {
-      if (!chosenFile) return;
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          resolve(String(reader.result || "").split(",")[1] || "");
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
 
-      statusText.textContent = "Google Drive par upload ho raha hai...";
-      const reader = new FileReader();
-      reader.onload = async () => {
+    async function uploadSelectedFiles() {
+      if (!selectedFiles.length || isUploading) return;
+
+      isUploading = true;
+      uploadTriggerBtn.disabled = true;
+      statusBox.classList.add("uploading");
+      timerLine.style.display = "block";
+      progressTrack.style.display = "block";
+      progressFill.style.width = "8%";
+
+      const estSec = estimateSeconds(selectedFiles);
+      let secPassed = 0;
+      timerLine.textContent = `⏱ 0s / ~${estSec}s`;
+
+      clearInterval(elapsedTimer);
+      elapsedTimer = setInterval(() => {
+        secPassed++;
+        const displayEst = Math.max(estSec, secPassed + 1);
+        timerLine.textContent = `⏱ ${secPassed}s / ~${displayEst}s`;
+      }, 1000);
+
+      let uploadedCount = 0;
+      for (let i = 0; i < selectedFiles.length; i++) {
+        const f = selectedFiles[i];
+        statusText.textContent = `Uploading ${i + 1} of ${selectedFiles.length}: ${f.name}`;
+        progressFill.style.width = `${Math.max(10, Math.round((i / selectedFiles.length) * 100))}%`;
+
         try {
-          const base64Data = String(reader.result || "").split(",")[1] || "";
+          const base64Data = await fileToBase64(f);
           await fetch(DRIVE_WEB_APP_URL, {
             method: "POST",
             mode: "no-cors",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              filename: chosenFile.name,
-              mimeType: chosenFile.type || "application/octet-stream",
+              filename: f.name,
+              mimeType: f.type || "application/octet-stream",
               base64: base64Data
             })
           });
-          statusText.textContent = `Uploaded: ${chosenFile.name}`;
+          uploadedCount++;
+          progressFill.style.width = `${Math.round(((i + 1) / selectedFiles.length) * 100)}%`;
         } catch (err) {
-          statusText.textContent = "Upload mein dikkat aayi.";
+          statusText.textContent = `Error on ${f.name} (${i + 1}/${selectedFiles.length})`;
         }
-      };
-      reader.readAsDataURL(chosenFile);
+      }
+
+      clearInterval(elapsedTimer);
+      isUploading = false;
+      uploadTriggerBtn.disabled = false;
+      progressFill.style.width = "100%";
+      timerLine.textContent = `✔ Completed in ${secPassed}s`;
+      statusText.textContent = `${uploadedCount}/${selectedFiles.length} file(s) sent to Google Drive.`;
+      selectedFiles = [];
+      photoLabelText.textContent = "Direct Photos (Multiple)";
+      fileLabelText.textContent = "Choose Files (Multiple Any File)";
     }
   </script>
 </body>
