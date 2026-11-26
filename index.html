@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Drive Uploader</title>
+  <style>
+    :root {
+      --bg-base: #06070a;
+      --card-color: #ffffff;
+      --card-alpha: 0.08;
+      --glass-blur: 24px;
+      --border-color: #ffffff;
+      --border-alpha: 0.16;
+      --radius: 26px;
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --btn-border: rgba(255, 255, 255, 0.24);
+      --btn-active-bg: #ffffff;
+      --btn-active-text: #06070a;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.09) 0%, transparent 45%),
+        radial-gradient(circle at 80% 85%, rgba(255, 255, 255, 0.06) 0%, transparent 45%),
+        var(--bg-base);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .glass-card {
+      width: 100%;
+      max-width: 420px;
+      padding: 22px;
+      border-radius: var(--radius);
+      background: color-mix(in srgb, var(--card-color) calc(var(--card-alpha) * 100%), transparent);
+      backdrop-filter: blur(var(--glass-blur));
+      -webkit-backdrop-filter: blur(var(--glass-blur));
+      border: 1px solid color-mix(in srgb, var(--border-color) calc(var(--border-alpha) * 100%), transparent);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0 0 6px 0;
+    }
+
+    .sub {
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      margin: 0 0 18px 0;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .upload-box, .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      padding: 14px 16px;
+      border-radius: 18px;
+      border: 1px solid var(--btn-border);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+
+    .upload-box {
+      border-style: dashed;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .btn:active, .upload-box:active {
+      background: var(--btn-active-bg);
+      color: var(--btn-active-text);
+      transform: scale(0.97);
+    }
+
+    .status {
+      margin-top: 14px;
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      text-align: center;
+      min-height: 18px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(18px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 50;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-box {
+      width: 100%;
+      max-width: 340px;
+      padding: 20px;
+      border-radius: 22px;
+      background: rgba(14, 16, 23, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+    }
+
+    .pass-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      background: rgba(0, 0, 0, 0.4);
+      color: #ffffff;
+      font-size: 14px;
+      margin: 12px 0;
+      outline: none;
+    }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glass-card">
+    <h1 class="title">Google Drive Upload</h1>
+    <p class="sub">फ़ाइल चुनें — अपलोड करने से पहले पासवर्ड पूछा जाएगा।</p>
+
+    <label for="driveFileInput" class="upload-box">
+      <span id="fileLabelText">Choose File</span>
+    </label>
+    <input type="file" id="driveFileInput">
+
+    <button type="button" class="btn" onclick="openPasswordModal()">Upload to Drive</button>
+    <div class="status" id="statusText">Ready</div>
+  </div>
+
+  <div class="modal-backdrop" id="passModal">
+    <div class="modal-box">
+      <div style="font-size:15px; font-weight:700;">Password Required</div>
+      <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">अपलोड शुरू करने के लिए पासवर्ड डालें</div>
+      <input type="password" class="pass-input" id="passInput" placeholder="Enter password..." onkeydown="if(event.key==='Enter') confirmUploadWithPassword()">
+      <div class="row-2">
+        <button type="button" class="btn" onclick="closePasswordModal()">Cancel</button>
+        <button type="button" class="btn" onclick="confirmUploadWithPassword()">Verify & Upload</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DRIVE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzZR-2GrvNEKvJHVCC-wsYGRAwKNLeTx_JOGtfgn4FmHGZ0YfZL77lYZthVbCW9sPCT/exec";
+    const REQUIRED_PASS = "zeeshan";
+
+    let chosenFile = null;
+    const fileInput = document.getElementById("driveFileInput");
+    const fileLabelText = document.getElementById("fileLabelText");
+    const statusText = document.getElementById("statusText");
+    const passModal = document.getElementById("passModal");
+    const passInput = document.getElementById("passInput");
+
+    fileInput.addEventListener("change", (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      chosenFile = f;
+      fileLabelText.textContent = `${f.name} (${Math.max(1, Math.round(f.size / 1024))} KB)`;
+      statusText.textContent = "File selected. Click Upload to Drive.";
+    });
+
+    function openPasswordModal() {
+      if (!chosenFile) {
+        statusText.textContent = "पहले कोई फ़ाइल चुनें।";
+        return;
+      }
+      passInput.value = "";
+      passModal.classList.add("open");
+      setTimeout(() => passInput.focus(), 80);
+    }
+
+    function closePasswordModal() {
+      passModal.classList.remove("open");
+    }
+
+    function confirmUploadWithPassword() {
+      const entered = passInput.value.trim().toLowerCase();
+      if (entered !== REQUIRED_PASS) {
+        statusText.textContent = "गलत पासवर्ड! अपलोड रोक दिया गया।";
+        closePasswordModal();
+        return;
+      }
+      closePasswordModal();
+      uploadSelectedFile();
+    }
+
+    function uploadSelectedFile() {
+      if (!chosenFile) return;
+
+      statusText.textContent = "Google Drive पर अपलोड हो रहा है...";
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64Data = String(reader.result || "").split(",")[1] || "";
+          await fetch(DRIVE_WEB_APP_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              filename: chosenFile.name,
+              mimeType: chosenFile.type || "application/octet-stream",
+              base64: base64Data
+            })
+          });
+          statusText.textContent = `Uploaded: ${chosenFile.name}`;
+        } catch (err) {
+          statusText.textContent = "अपलोड में समस्या आई।";
+        }
+      };
+      reader.readAsDataURL(chosenFile);
+    }
+  </script>
+</body>
+</html>
