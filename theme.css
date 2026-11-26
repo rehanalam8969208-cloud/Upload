@@ -1,0 +1,314 @@
+:root {
+  --bg-base: #06070a;
+  --card-color: #ffffff;
+  --card-alpha: 0.08;
+  --glass-blur: 24px;
+  --border-color: #ffffff;
+  --border-alpha: 0.16;
+  --radius: 26px;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --btn-border: rgba(255, 255, 255, 0.24);
+  --btn-active-bg: #ffffff;
+  --btn-active-text: #06070a;
+  --accent: #38bdf8;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.09) 0%, transparent 45%),
+    radial-gradient(circle at 80% 85%, rgba(255, 255, 255, 0.06) 0%, transparent 45%),
+    var(--bg-base);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+}
+
+.glass-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 22px;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--card-color) calc(var(--card-alpha) * 100%), transparent);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid color-mix(in srgb, var(--border-color) calc(var(--border-alpha) * 100%), transparent);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.corner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--btn-border);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.corner-btn:active {
+  background: var(--btn-active-bg);
+  color: var(--btn-active-text);
+  transform: scale(0.95);
+}
+
+.corner-btn svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sub {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin: 0 0 18px 0;
+}
+
+input[type="file"] {
+  display: none;
+}
+
+.upload-box, .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--btn-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+}
+
+.upload-box {
+  border-style: dashed;
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.btn {
+  margin-bottom: 10px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:active:not(:disabled), .upload-box:active {
+  background: var(--btn-active-bg);
+  color: var(--btn-active-text);
+  transform: scale(0.97);
+}
+
+.status-box {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.25s ease;
+}
+
+.status-box.uploading {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: var(--accent);
+  box-shadow: 0 0 22px rgba(56, 189, 248, 0.25);
+}
+
+.status {
+  font-size: 12.5px;
+  color: var(--text-primary);
+  text-align: center;
+  line-height: 1.45;
+}
+
+.timer-line {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7dd3fc;
+  text-align: center;
+  display: none;
+}
+
+.progress-track {
+  margin-top: 8px;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  overflow: hidden;
+  display: none;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+
+/* Password Modal */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  z-index: 50;
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.modal-box {
+  width: 100%;
+  max-width: 340px;
+  padding: 20px;
+  border-radius: 22px;
+  background: rgba(14, 16, 23, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+}
+
+/* Full Screen Gallery Overlay */
+.fullscreen-gallery {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.08) 0%, transparent 45%),
+    var(--bg-base);
+  display: none;
+  flex-direction: column;
+  padding: 16px;
+  z-index: 60;
+  animation: galleryFadeIn 0.22s ease;
+}
+
+.fullscreen-gallery.open {
+  display: flex;
+}
+
+@keyframes galleryFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.gallery-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.gallery-grid {
+  margin-top: 14px;
+  flex: 1;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  align-content: start;
+}
+
+@media (min-width: 640px) {
+  .gallery-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.photo-item {
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  aspect-ratio: 1 / 1;
+  cursor: pointer;
+}
+
+.photo-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photo-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 8px;
+  font-size: 11px;
+  color: #fff;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pass-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.4);
+  color: #ffffff;
+  font-size: 14px;
+  margin: 12px 0;
+  outline: none;
+}
+
+.row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
