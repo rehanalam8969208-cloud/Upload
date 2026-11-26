@@ -86,8 +86,12 @@
 
     .upload-box {
       border-style: dashed;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       text-align: center;
+    }
+
+    .btn {
+      margin-bottom: 10px;
     }
 
     .btn:active, .upload-box:active {
@@ -97,7 +101,7 @@
     }
 
     .status {
-      margin-top: 14px;
+      margin-top: 12px;
       font-size: 12.5px;
       color: var(--text-secondary);
       text-align: center;
@@ -153,10 +157,15 @@
 
   <div class="glass-card">
     <h1 class="title">Google Drive Upload</h1>
-    <p class="sub">फ़ाइल चुनें — अपलोड करने से पहले पासवर्ड पूछा जाएगा।</p>
+    <p class="sub">Direct Photo ya koi bhi File chunein — upload se pehle password poochha jayega.</p>
+
+    <label for="drivePhotoInput" class="btn">
+      <span id="photoLabelText">Direct Photos</span>
+    </label>
+    <input type="file" id="drivePhotoInput" accept="image/*">
 
     <label for="driveFileInput" class="upload-box">
-      <span id="fileLabelText">Choose File</span>
+      <span id="fileLabelText">Choose File (Any File)</span>
     </label>
     <input type="file" id="driveFileInput">
 
@@ -167,7 +176,7 @@
   <div class="modal-backdrop" id="passModal">
     <div class="modal-box">
       <div style="font-size:15px; font-weight:700;">Password Required</div>
-      <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">अपलोड शुरू करने के लिए पासवर्ड डालें</div>
+      <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Upload shuru karne ke liye password dalein</div>
       <input type="password" class="pass-input" id="passInput" placeholder="Enter password..." onkeydown="if(event.key==='Enter') confirmUploadWithPassword()">
       <div class="row-2">
         <button type="button" class="btn" onclick="closePasswordModal()">Cancel</button>
@@ -181,23 +190,39 @@
     const REQUIRED_PASS = "zeeshan";
 
     let chosenFile = null;
+    const photoInput = document.getElementById("drivePhotoInput");
     const fileInput = document.getElementById("driveFileInput");
+    const photoLabelText = document.getElementById("photoLabelText");
     const fileLabelText = document.getElementById("fileLabelText");
     const statusText = document.getElementById("statusText");
     const passModal = document.getElementById("passModal");
     const passInput = document.getElementById("passInput");
 
-    fileInput.addEventListener("change", (e) => {
-      const f = e.target.files && e.target.files[0];
+    function handleFilePicked(f, sourceType) {
       if (!f) return;
       chosenFile = f;
-      fileLabelText.textContent = `${f.name} (${Math.max(1, Math.round(f.size / 1024))} KB)`;
-      statusText.textContent = "File selected. Click Upload to Drive.";
+      const info = `${f.name} (${Math.max(1, Math.round(f.size / 1024))} KB)`;
+      if (sourceType === "photo") {
+        photoLabelText.textContent = info;
+        fileLabelText.textContent = "Choose File (Any File)";
+      } else {
+        fileLabelText.textContent = info;
+        photoLabelText.textContent = "Direct Photos";
+      }
+      statusText.textContent = "Selected. Click Upload to Drive.";
+    }
+
+    photoInput.addEventListener("change", (e) => {
+      handleFilePicked(e.target.files && e.target.files[0], "photo");
+    });
+
+    fileInput.addEventListener("change", (e) => {
+      handleFilePicked(e.target.files && e.target.files[0], "file");
     });
 
     function openPasswordModal() {
       if (!chosenFile) {
-        statusText.textContent = "पहले कोई फ़ाइल चुनें।";
+        statusText.textContent = "Pehle Direct Photos ya Choose File se koi file chunein.";
         return;
       }
       passInput.value = "";
@@ -212,7 +237,7 @@
     function confirmUploadWithPassword() {
       const entered = passInput.value.trim().toLowerCase();
       if (entered !== REQUIRED_PASS) {
-        statusText.textContent = "गलत पासवर्ड! अपलोड रोक दिया गया।";
+        statusText.textContent = "Galat password! Upload rok diya gaya.";
         closePasswordModal();
         return;
       }
@@ -223,7 +248,7 @@
     function uploadSelectedFile() {
       if (!chosenFile) return;
 
-      statusText.textContent = "Google Drive पर अपलोड हो रहा है...";
+      statusText.textContent = "Google Drive par upload ho raha hai...";
       const reader = new FileReader();
       reader.onload = async () => {
         try {
@@ -240,7 +265,7 @@
           });
           statusText.textContent = `Uploaded: ${chosenFile.name}`;
         } catch (err) {
-          statusText.textContent = "अपलोड में समस्या आई।";
+          statusText.textContent = "Upload mein dikkat aayi.";
         }
       };
       reader.readAsDataURL(chosenFile);
