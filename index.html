@@ -4,294 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Drive Uploader</title>
-  <style>
-    :root {
-      --bg-base: #06070a;
-      --card-color: #ffffff;
-      --card-alpha: 0.08;
-      --glass-blur: 24px;
-      --border-color: #ffffff;
-      --border-alpha: 0.16;
-      --radius: 26px;
-      --text-primary: #ffffff;
-      --text-secondary: #a1a1aa;
-      --btn-border: rgba(255, 255, 255, 0.24);
-      --btn-active-bg: #ffffff;
-      --btn-active-text: #06070a;
-      --accent: #38bdf8;
-    }
-
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, sans-serif;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.09) 0%, transparent 45%),
-        radial-gradient(circle at 80% 85%, rgba(255, 255, 255, 0.06) 0%, transparent 45%),
-        var(--bg-base);
-      color: var(--text-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-    }
-
-    .glass-card {
-      width: 100%;
-      max-width: 420px;
-      padding: 22px;
-      border-radius: var(--radius);
-      background: color-mix(in srgb, var(--card-color) calc(var(--card-alpha) * 100%), transparent);
-      backdrop-filter: blur(var(--glass-blur));
-      -webkit-backdrop-filter: blur(var(--glass-blur));
-      border: 1px solid color-mix(in srgb, var(--border-color) calc(var(--border-alpha) * 100%), transparent);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-    }
-
-    .header-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 6px;
-    }
-
-    .title {
-      font-size: 20px;
-      font-weight: 700;
-      margin: 0;
-    }
-
-    .corner-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
-      border-radius: 14px;
-      border: 1px solid var(--btn-border);
-      background: rgba(255, 255, 255, 0.07);
-      color: var(--text-primary);
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
-    }
-
-    .corner-btn:active {
-      background: var(--btn-active-bg);
-      color: var(--btn-active-text);
-      transform: scale(0.95);
-    }
-
-    .corner-btn svg {
-      width: 15px;
-      height: 15px;
-      stroke: currentColor;
-      fill: none;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-    }
-
-    .sub {
-      font-size: 12.5px;
-      color: var(--text-secondary);
-      margin: 0 0 18px 0;
-    }
-
-    input[type="file"] {
-      display: none;
-    }
-
-    .upload-box, .btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      padding: 14px 16px;
-      border-radius: 18px;
-      border: 1px solid var(--btn-border);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text-primary);
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
-    }
-
-    .upload-box {
-      border-style: dashed;
-      margin-bottom: 10px;
-      text-align: center;
-    }
-
-    .btn {
-      margin-bottom: 10px;
-    }
-
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .btn:active:not(:disabled), .upload-box:active {
-      background: var(--btn-active-bg);
-      color: var(--btn-active-text);
-      transform: scale(0.97);
-    }
-
-    .status-box {
-      margin-top: 12px;
-      padding: 12px 14px;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      transition: all 0.25s ease;
-    }
-
-    .status-box.uploading {
-      background: rgba(56, 189, 248, 0.14);
-      border-color: var(--accent);
-      box-shadow: 0 0 22px rgba(56, 189, 248, 0.25);
-    }
-
-    .status {
-      font-size: 12.5px;
-      color: var(--text-primary);
-      text-align: center;
-      line-height: 1.45;
-    }
-
-    .timer-line {
-      margin-top: 6px;
-      font-size: 12px;
-      font-weight: 700;
-      color: #7dd3fc;
-      text-align: center;
-      display: none;
-    }
-
-    .progress-track {
-      margin-top: 8px;
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.12);
-      overflow: hidden;
-      display: none;
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      background: var(--accent);
-      transition: width 0.25s ease;
-    }
-
-    /* Modals */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.78);
-      backdrop-filter: blur(18px);
-      -webkit-backdrop-filter: blur(18px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 18px;
-      z-index: 50;
-    }
-
-    .modal-backdrop.open {
-      display: flex;
-    }
-
-    .modal-box {
-      width: 100%;
-      max-width: 340px;
-      padding: 20px;
-      border-radius: 22px;
-      background: rgba(14, 16, 23, 0.95);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
-    }
-
-    .gallery-modal-box {
-      width: 100%;
-      max-width: 460px;
-      max-height: 84vh;
-      display: flex;
-      flex-direction: column;
-      padding: 18px;
-      border-radius: 24px;
-      background: rgba(14, 16, 23, 0.96);
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8);
-    }
-
-    .gallery-grid {
-      margin-top: 14px;
-      overflow-y: auto;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-      padding-right: 2px;
-    }
-
-    .photo-item {
-      position: relative;
-      border-radius: 14px;
-      overflow: hidden;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      aspect-ratio: 1 / 1;
-      cursor: pointer;
-    }
-
-    .photo-item img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .photo-caption {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      padding: 6px 8px;
-      font-size: 10.5px;
-      color: #fff;
-      background: linear-gradient(to top, rgba(0,0,0,0.82), transparent);
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .pass-input {
-      width: 100%;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      background: rgba(0, 0, 0, 0.4);
-      color: #ffffff;
-      font-size: 14px;
-      margin: 12px 0;
-      outline: none;
-    }
-
-    .row-2 {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-  </style>
+  <link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
@@ -307,7 +20,7 @@
         <span>Photos</span>
       </button>
     </div>
-    <p class="sub">एक साथ कई फ़ोटो या फ़ाइलें चुनें — अपलोड से पहले पासवर्ड पूछा जाएगा।</p>
+    <p class="sub">Ek saath kai photos ya files chunein — upload se pehle password poochha jayega.</p>
 
     <label for="drivePhotoInput" class="btn">
       <span id="photoLabelText">Direct Photos (Multiple)</span>
@@ -330,11 +43,11 @@
     </div>
   </div>
 
-  <!-- Upload Password Modal (zeeshan) -->
+  <!-- Upload Password Modal -->
   <div class="modal-backdrop" id="uploadPassModal">
     <div class="modal-box">
       <div style="font-size:15px; font-weight:700;">Upload Password</div>
-      <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">अपलोड शुरू करने के लिए पासवर्ड डालें</div>
+      <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Upload shuru karne ke liye password dalein</div>
       <input type="password" class="pass-input" id="uploadPassInput" placeholder="Enter password..." onkeydown="if(event.key==='Enter') confirmUploadWithPassword()">
       <div class="row-2">
         <button type="button" class="btn" style="margin-bottom:0;" onclick="closeModal('uploadPassModal')">Cancel</button>
@@ -343,13 +56,13 @@
     </div>
   </div>
 
-  <!-- Gallery Password Modal (gulafsana) -->
+  <!-- Gallery Password Modal -->
   <div class="modal-backdrop" id="galleryPassModal">
     <div class="modal-box">
       <div style="font-size:15px; font-weight:700;">Uploaded Photos Lock</div>
-      <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">अपलोड हुई फ़ोटो देखने के लिए पासवर्ड डालें</div>
+      <div style="font-size:12px; color:var(--text-secondary); margin-top:4px;">Uploaded photos dekhne ke liye password dalein</div>
       <input type="password" class="pass-input" id="galleryPassInput" placeholder="Enter password..." onkeydown="if(event.key==='Enter') confirmGalleryPassword()">
-      <div id="galleryPassError" style="font-size:12px; color:#f87171; margin-bottom:8px; display:none;">गलत पासवर्ड!</div>
+      <div id="galleryPassError" style="font-size:12px; color:#f87171; margin-bottom:8px; display:none;">Galat password!</div>
       <div class="row-2">
         <button type="button" class="btn" style="margin-bottom:0;" onclick="closeModal('galleryPassModal')">Cancel</button>
         <button type="button" class="btn" style="margin-bottom:0;" onclick="confirmGalleryPassword()">Open Photos</button>
@@ -357,242 +70,22 @@
     </div>
   </div>
 
-  <!-- Uploaded Photos Gallery Modal -->
-  <div class="modal-backdrop" id="galleryModal">
-    <div class="gallery-modal-box">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
-        <div>
-          <div style="font-size:16px; font-weight:700;">Uploaded Photos</div>
-          <div id="galleryCountText" style="font-size:11.5px; color:var(--text-secondary);">Loading...</div>
-        </div>
-        <div style="display:flex; gap:8px;">
-          <button type="button" class="corner-btn" onclick="loadUploadedPhotos()">Refresh</button>
-          <button type="button" class="corner-btn" onclick="closeModal('galleryModal')">Close</button>
-        </div>
+  <!-- Full-Screen Uploaded Photos Overlay -->
+  <div class="fullscreen-gallery" id="fullscreenGallery">
+    <div class="gallery-top-bar">
+      <div>
+        <div style="font-size:17px; font-weight:700;">Uploaded Photos</div>
+        <div id="galleryCountText" style="font-size:12px; color:var(--text-secondary);">Loading...</div>
       </div>
-      <div class="gallery-grid" id="galleryGrid"></div>
+      <div style="display:flex; gap:8px;">
+        <button type="button" class="corner-btn" onclick="loadUploadedPhotos()">Refresh</button>
+        <button type="button" class="corner-btn" onclick="closeFullscreenGallery()">Close</button>
+      </div>
     </div>
+    <div class="gallery-grid" id="galleryGrid"></div>
   </div>
 
-  <script>
-    const DRIVE_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzZR-2GrvNEKvJHVCC-wsYGRAwKNLeTx_JOGtfgn4FmHGZ0YfZL77lYZthVbCW9sPCT/exec";
-    const UPLOAD_PASS = "zeeshan";
-    const GALLERY_PASS = "gulafsana";
-
-    let selectedFiles = [];
-    let isUploading = false;
-    let elapsedTimer = null;
-
-    const photoInput = document.getElementById("drivePhotoInput");
-    const fileInput = document.getElementById("driveFileInput");
-    const photoLabelText = document.getElementById("photoLabelText");
-    const fileLabelText = document.getElementById("fileLabelText");
-    const statusBox = document.getElementById("statusBox");
-    const statusText = document.getElementById("statusText");
-    const timerLine = document.getElementById("timerLine");
-    const progressTrack = document.getElementById("progressTrack");
-    const progressFill = document.getElementById("progressFill");
-    const uploadTriggerBtn = document.getElementById("uploadTriggerBtn");
-
-    function closeModal(id) {
-      document.getElementById(id).classList.remove("open");
-    }
-
-    function formatTotalSize(files) {
-      const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
-      if (totalBytes >= 1024 * 1024) {
-        return `${(totalBytes / (1024 * 1024)).toFixed(1)} MB`;
-      }
-      return `${Math.max(1, Math.round(totalBytes / 1024))} KB`;
-    }
-
-    function estimateSeconds(files) {
-      const totalBytes = files.reduce((sum, f) => sum + (f.size || 0), 0);
-      const sizeBasedSec = Math.ceil(totalBytes / (300 * 1024));
-      return Math.max(2, files.length + sizeBasedSec);
-    }
-
-    function handleFilesPicked(fileList, sourceType) {
-      if (isUploading) return;
-      const arr = Array.from(fileList || []);
-      if (!arr.length) return;
-      selectedFiles = arr;
-
-      const summary = `${arr.length} ${sourceType === "photo" ? "photo(s)" : "file(s)"} • ${formatTotalSize(arr)}`;
-      if (sourceType === "photo") {
-        photoLabelText.textContent = summary;
-        fileLabelText.textContent = "Choose Files (Multiple Any File)";
-      } else {
-        fileLabelText.textContent = summary;
-        photoLabelText.textContent = "Direct Photos (Multiple)";
-      }
-
-      statusBox.classList.remove("uploading");
-      timerLine.style.display = "none";
-      progressTrack.style.display = "none";
-      progressFill.style.width = "0%";
-      statusText.textContent = `${summary} ready. Estimated time: ~${estimateSeconds(arr)}s`;
-    }
-
-    photoInput.addEventListener("change", (e) => {
-      handleFilesPicked(e.target.files, "photo");
-      e.target.value = "";
-    });
-
-    fileInput.addEventListener("change", (e) => {
-      handleFilesPicked(e.target.files, "file");
-      e.target.value = "";
-    });
-
-    function openUploadPasswordModal() {
-      if (isUploading) return;
-      if (!selectedFiles.length) {
-        statusText.textContent = "पहले Direct Photos या Choose Files से फ़ाइलें चुनें।";
-        return;
-      }
-      const inp = document.getElementById("uploadPassInput");
-      inp.value = "";
-      document.getElementById("uploadPassModal").classList.add("open");
-      setTimeout(() => inp.focus(), 80);
-    }
-
-    function confirmUploadWithPassword() {
-      const entered = document.getElementById("uploadPassInput").value.trim().toLowerCase();
-      if (entered !== UPLOAD_PASS) {
-        statusBox.classList.remove("uploading");
-        statusText.textContent = "गलत पासवर्ड! अपलोड रोक दिया गया।";
-        closeModal("uploadPassModal");
-        return;
-      }
-      closeModal("uploadPassModal");
-      uploadSelectedFiles();
-    }
-
-    function openGalleryPasswordModal() {
-      const inp = document.getElementById("galleryPassInput");
-      const err = document.getElementById("galleryPassError");
-      inp.value = "";
-      err.style.display = "none";
-      document.getElementById("galleryPassModal").classList.add("open");
-      setTimeout(() => inp.focus(), 80);
-    }
-
-    function confirmGalleryPassword() {
-      const entered = document.getElementById("galleryPassInput").value.trim().toLowerCase();
-      const err = document.getElementById("galleryPassError");
-      if (entered !== GALLERY_PASS) {
-        err.style.display = "block";
-        return;
-      }
-      closeModal("galleryPassModal");
-      document.getElementById("galleryModal").classList.add("open");
-      loadUploadedPhotos();
-    }
-
-    async function loadUploadedPhotos() {
-      const grid = document.getElementById("galleryGrid");
-      const countText = document.getElementById("galleryCountText");
-      grid.innerHTML = "";
-      countText.textContent = "Drive se photos load ho rahi hain...";
-
-      try {
-        const res = await fetch(DRIVE_WEB_APP_URL);
-        const data = await res.json();
-        if (data.status !== "ok") {
-          countText.textContent = "Photos load nahi ho payin.";
-          return;
-        }
-
-        const photos = data.photos || [];
-        countText.textContent = `${photos.length} uploaded photo(s)`;
-
-        if (!photos.length) {
-          grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:var(--text-secondary); font-size:13px; padding:24px 0;">Abhi tak koi photo upload nahi hui hai.</div>`;
-          return;
-        }
-
-        photos.forEach((p) => {
-          const item = document.createElement("div");
-          item.className = "photo-item";
-          item.onclick = () => window.open(p.viewUrl, "_blank");
-          item.innerHTML = `
-            <img src="${p.thumbUrl}" alt="${p.name}" loading="lazy">
-            <div class="photo-caption">${p.name}</div>
-          `;
-          grid.appendChild(item);
-        });
-      } catch (err) {
-        countText.textContent = "Load karne mein dikkat aayi (Apps Script re-deploy check karein).";
-      }
-    }
-
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          resolve(String(reader.result || "").split(",")[1] || "");
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-
-    async function uploadSelectedFiles() {
-      if (!selectedFiles.length || isUploading) return;
-
-      isUploading = true;
-      uploadTriggerBtn.disabled = true;
-      statusBox.classList.add("uploading");
-      timerLine.style.display = "block";
-      progressTrack.style.display = "block";
-      progressFill.style.width = "8%";
-
-      const estSec = estimateSeconds(selectedFiles);
-      let secPassed = 0;
-      timerLine.textContent = `⏱ 0s / ~${estSec}s`;
-
-      clearInterval(elapsedTimer);
-      elapsedTimer = setInterval(() => {
-        secPassed++;
-        const displayEst = Math.max(estSec, secPassed + 1);
-        timerLine.textContent = `⏱ ${secPassed}s / ~${displayEst}s`;
-      }, 1000);
-
-      let uploadedCount = 0;
-      for (let i = 0; i < selectedFiles.length; i++) {
-        const f = selectedFiles[i];
-        statusText.textContent = `Uploading ${i + 1} of ${selectedFiles.length}: ${f.name}`;
-        progressFill.style.width = `${Math.max(10, Math.round((i / selectedFiles.length) * 100))}%`;
-
-        try {
-          const base64Data = await fileToBase64(f);
-          await fetch(DRIVE_WEB_APP_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              filename: f.name,
-              mimeType: f.type || "application/octet-stream",
-              base64: base64Data
-            })
-          });
-          uploadedCount++;
-          progressFill.style.width = `${Math.round(((i + 1) / selectedFiles.length) * 100)}%`;
-        } catch (err) {
-          statusText.textContent = `Error on ${f.name} (${i + 1}/${selectedFiles.length})`;
-        }
-      }
-
-      clearInterval(elapsedTimer);
-      isUploading = false;
-      uploadTriggerBtn.disabled = false;
-      progressFill.style.width = "100%";
-      timerLine.textContent = `✔ Completed in ${secPassed}s`;
-      statusText.textContent = `${uploadedCount}/${selectedFiles.length} file(s) sent to Google Drive.`;
-      selectedFiles = [];
-      photoLabelText.textContent = "Direct Photos (Multiple)";
-      fileLabelText.textContent = "Choose Files (Multiple Any File)";
-    }
-  </script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
